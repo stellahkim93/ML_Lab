@@ -1,0 +1,5 @@
+total 16
+-rw-r--r--  1 stellakim  staff  6233 Feb 25 14:50 Machine_Learning_Lab.md
+drwxr-xr-x  5 stellakim  staff   160 Feb 25 14:50 data
+drwxr-xr-x  2 stellakim  staff    64 Feb 25 14:55 test
+-rw-r--r--  1 stellakim  staff     0 Feb 25 14:55 test.txt
