@@ -12,12 +12,12 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import datetime as dt
 
-# cd Documents/NYC\ Data\ Science\ Academy/Week\ 8/feb25/ML_Lab
+# cd ~/Documents/NYC\ Data\ Science\ Academy/Week\ 8/feb25/ML_Lab
 
 Orders = pd.read_csv("data/Orders.csv")
 #Returns = pd.read_csv("data/Returns.csv")
 
-Orders.hist()
+#Orders.hist()
 Orders.columns
 ################################  PART 1 ######################################
 ##############################  PROBLEM 1 #####################################
@@ -39,7 +39,7 @@ Orders['Order.Month'] = pd.Series(list(map(lambda x: x.month, Orders['Order.Date
 monthly_orders = Orders.groupby("Order.Month").agg({"Quantity": "sum"})
 Months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 monthly_orders.index = Months
-sns.barplot(x = monthly_orders.index, y = monthly_orders['Quantity'])
+#sns.barplot(x = monthly_orders.index, y = monthly_orders['Quantity'])
 
 # Problem 2, Question 2
 monthly_cat_orders = Orders.groupby(["Order.Month" ,"Category"]).agg({"Quantity": "sum"})
@@ -47,8 +47,8 @@ monthly_cat_orders = monthly_cat_orders.reset_index(level = "Category")
 monthly_cat_orders.index =  pd.Index(np.repeat(Months, 3), name = monthly_cat_orders.index.name)
 monthly_cat_orders.reset_index(inplace = True)
 
-fg = sns.FacetGrid(monthly_cat_orders, col = "Category")
-fg = fg.map(sns.barplot, "Order.Month", 'Quantity')
+#fg = sns.FacetGrid(monthly_cat_orders, col = "Category")
+#fg = fg.map(sns.barplot, "Order.Month", 'Quantity')
 
 
 ##############################  PROBLEM 3 #####################################
@@ -81,5 +81,40 @@ merged_returns['Sub.Category'].value_counts()
 
 ################################  PART 2 ######################################
 ##############################  PROBLEM 4 #####################################
+
+## Step 1
+#Orders['Order.ID'].isin(Returns['Order ID'])
+merged_returns = pd.merge(Orders, Returns, how = "outer", left_on = "Order.ID",
+                  right_on = "Order ID").drop(["Order ID", "Region_y"], axis = 1)
+merged_returns['Returned'].fillna("No", inplace = True)
+
+
+## Step 2
+merged_returns['Process.Time'] = merged_returns['Ship.Date'] - merged_returns['Order.Date']
+
+
+#np.sub()
+#list(map(lambda x: x.day, Orders['Ship.Date']))  list(map(lambda x: x.day, Orders['Order.Date']))
+
+
+# Step 3
+merged_returns[merged_returns['Returned'] == "Yes"].groupby('Product.ID').agg({'Quantity':'sum'})
+tmp = merged_returns.groupby(['Product.ID', 'Returned']).agg({'Quantity': "sum"}).reset_index(['Returned','Product.ID'])
+tmp = tmp.rename(columns = {"Quantity": "Quantity.Returned"})
+
+for row in range(0, len(tmp)):
+    if (tmp.loc[row, 'Returned'] == "No"):
+        tmp.loc[row, 'Quantity.Returned'] = 0
+
+merged_returns = pd.merge(merged_returns, tmp, how = "outer", left_on = ["Product.ID", "Returned"],
+         right_on = ["Product.ID", "Returned"])
+
+
+
+##############################  PROBLEM 5 #####################################
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import train_test_split, StratifiedKFold
+
+merged_returns.columns
 
 
