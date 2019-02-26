@@ -117,4 +117,43 @@ from sklearn.model_selection import train_test_split, StratifiedKFold
 
 merged_returns.columns
 
+# If city shows up <= 50 times, categorize as "Other"
+others = list(merged_returns['City'].value_counts().index[merged_returns['City'].value_counts() <= 50])
+merged_returns['City'] = ['Other' if x in others else x for x in merged_returns['City']]
+
+# If state shows up <= 25 times, categorize as "Other"
+others = list(merged_returns['State'].value_counts().index[merged_returns['State'].value_counts() <= 25])
+merged_returns['State'] = ['Other' if x in others else x for x in merged_returns['State']]
+
+# If country shows up <= 10 times, categorize as "Other"
+others = list(merged_returns['Country'].value_counts().index[merged_returns['Country'].value_counts() <= 10])
+merged_returns['Country'] = ['Other' if x in others else x for x in merged_returns['Country']]
+
+
+# Keeping Customer ID over Customer Name, in case there are two customers with the same name
+# Product ID is probably more reliable than Product Name, but same information
+# Postal code has many NAs, probably too granular for this purpose anyway
+# Customer's probably aren't going to consider a company's profits when making a return
+drop_columns = ['Row.ID', 'Order.ID', 'Customer.Name',
+                'Postal.Code', 'Market', 'Product.Name',
+                'Profit']
+
+merged_returns.drop(columns = drop_columns, inplace= True)
+
+y = merged_returns['Returned']
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
