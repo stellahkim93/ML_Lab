@@ -91,11 +91,7 @@ merged_returns['Returned'].fillna("No", inplace = True)
 
 ## Step 2
 merged_returns['Process.Time'] = merged_returns['Ship.Date'] - merged_returns['Order.Date']
-
-
-#np.sub()
-#list(map(lambda x: x.day, Orders['Ship.Date']))  list(map(lambda x: x.day, Orders['Order.Date']))
-
+merged_returns['Process.Time'] = list(map(lambda x: x.days, merged_returns['Process.Time']))
 
 # Step 3
 merged_returns[merged_returns['Returned'] == "Yes"].groupby('Product.ID').agg({'Quantity':'sum'})
@@ -112,9 +108,6 @@ merged_returns = pd.merge(merged_returns, tmp, how = "outer", left_on = ["Produc
 
 
 ##############################  PROBLEM 5 #####################################
-from sklearn.linear_model import LogisticRegression
-from sklearn.model_selection import train_test_split, StratifiedKFold
-
 merged_returns.columns
 
 # If city shows up <= 50 times, categorize as "Other"
@@ -142,9 +135,41 @@ merged_returns.drop(columns = drop_columns, inplace= True)
 
 y = merged_returns['Returned']
 
+#Categorical Variable DF
+merged_returns['Order.Month'] = merged_returns['Order.Month'].astype('str')
+merged_returns['Process.Time'] = merged_returns['Process.Time'].astype('str')
+
+CAT_DF = merged_returns[['Ship.Mode','Customer.ID','Segment',
+                        'City','State','Country','Region_x',
+                       'Product.ID','Category', 'Sub.Category',
+                       'Order.Priority', 'Order.Month','Process.Time']]
+
+#Dummify
+dummy_df = pd.get_dummies(CAT_DF, prefix=['Ship.Mode','Customer.ID','Segment',
+                    'City','State','Country','Region_x',
+                  'Product.ID','Category','Sub.Category','Order.Priority',
+                  'Order.Month','Process.Time'])
+
+merged_return = merged_returns[['Sales','Quantity','Discount',
+                               'Shipping.Cost']]
+
+return_df = pd.concat([merged_return, dummy_df], axis=1, sort=False)
+return_df.sample(10)
+X = return_df
 
 
+from sklearn.linear_model import LogisticRegression
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
+from sklearn.model_selection import StratifiedKFold, cross_val_score
 
+############################### Logistic Regression ###########################
+cv5fold = StratifiedKFold(n_splits=5, random_state=0)
+logit = LogisticRegression()
+scores = cross_val_score(estimator = logit, X = X, y = y, cv = cv5fold)
+
+scores
+np.mean(scores)
 
 
 
